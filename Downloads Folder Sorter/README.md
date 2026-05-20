@@ -35,8 +35,8 @@ The first run creates `sorter_config.json` next to the script. Use the `Config` 
 - Exclude specific paths or files.
 - Exclude files that are newer than a chosen number of days.
 - Exclude one or more `MXXX`, `DE`, `GR`, `FR`, or `PH` patterns.
-- Change the Downloads, Desktop, Images/Bilder, or Videos paths.
-- Set the Resend email summary settings.
+- Change the Downloads, Desktop, Bilder, or Videos paths.
+- Configure the email sent at the end.
 
 By default, the program asks Windows for the real known-folder paths, so it should work with different usernames and with redirected OneDrive folders.
 
