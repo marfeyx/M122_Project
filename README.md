@@ -1,5 +1,7 @@
 # Downloads Sorter
 
+![Coverage](badges/coverage.svg)
+
 Python console application for sorting a Windows downloads folder by `MXXX` course/project codes.
 
 ## What it does
