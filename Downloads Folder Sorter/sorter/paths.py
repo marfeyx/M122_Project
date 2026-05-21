@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ctypes
 import os
+import re
 from pathlib import Path
 
 KNOWN_FOLDER_IDS = {
@@ -10,6 +11,16 @@ KNOWN_FOLDER_IDS = {
     "pictures": "{33E28130-4E1E-4676-835A-98395C3BC3BB}",
     "videos": "{18989B1D-99B5-455B-841C-AB7C74E4DDFC}",
 }
+
+WINDOWS_ENV_VAR_PATTERN = re.compile(r"%([^%]+)%")
+
+
+def expand_environment_variables(path_text: str) -> str:
+    def replace_windows_variable(match: re.Match[str]) -> str:
+        variable_name = match.group(1)
+        return os.environ.get(variable_name, match.group(0))
+
+    return os.path.expandvars(WINDOWS_ENV_VAR_PATTERN.sub(replace_windows_variable, path_text))
 
 
 def known_folder_path(folder_name: str, fallback: Path) -> Path:
@@ -50,7 +61,7 @@ def known_folder_path(folder_name: str, fallback: Path) -> Path:
 
 
 def resolve_path(path_text: str) -> Path:
-    return Path(os.path.expandvars(os.path.expanduser(path_text))).resolve()
+    return Path(expand_environment_variables(os.path.expanduser(path_text))).resolve()
 
 
 def is_inside(child: Path, parent: Path) -> bool:
