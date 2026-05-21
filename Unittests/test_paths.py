@@ -5,12 +5,12 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 PROJECT_DIR = Path(__file__).resolve().parents[1] / "Downloads Folder Sorter"
 sys.path.insert(0, str(PROJECT_DIR))
 
-from sorter.paths import is_inside, known_folder_path, resolve_path
+from sorter.paths import expand_environment_variables, is_inside, known_folder_path, resolve_path
 
 
 class PathTests(unittest.TestCase):
@@ -20,6 +20,13 @@ class PathTests(unittest.TestCase):
             os.environ["SORTER_TEST_ROOT"] = str(root)
 
             self.assertEqual(resolve_path("%SORTER_TEST_ROOT%"), root.resolve())
+
+    def test_expand_environment_variables_keeps_unknown_windows_variables(self) -> None:
+        with patch.dict(os.environ, {}, clear=True):
+            self.assertEqual(
+                expand_environment_variables("%MISSING_VAR%/file"),
+                "%MISSING_VAR%/file",
+            )
 
     def test_is_inside_detects_nested_paths(self) -> None:
         with tempfile.TemporaryDirectory() as root_text:
@@ -34,6 +41,38 @@ class PathTests(unittest.TestCase):
 
         with patch("sorter.paths.os.name", "posix"):
             self.assertEqual(known_folder_path("downloads", fallback), fallback)
+
+    def test_known_folder_path_returns_fallback_when_windows_calls_fail(self) -> None:
+        fallback = Path("fallback")
+        windll = Mock()
+        windll.ole32.CLSIDFromString.return_value = 1
+
+        with patch("sorter.paths.os.name", "nt"):
+            with patch("sorter.paths.ctypes.windll", windll, create=True):
+                self.assertEqual(known_folder_path("downloads", fallback), fallback)
+
+        windll.ole32.CLSIDFromString.return_value = 0
+        windll.shell32.SHGetKnownFolderPath.return_value = 1
+
+        with patch("sorter.paths.os.name", "nt"):
+            with patch("sorter.paths.ctypes.windll", windll, create=True):
+                self.assertEqual(known_folder_path("downloads", fallback), fallback)
+
+    def test_known_folder_path_returns_windows_path_and_frees_pointer(self) -> None:
+        fallback = Path("fallback")
+        windll = Mock()
+        windll.ole32.CLSIDFromString.return_value = 0
+        windll.shell32.SHGetKnownFolderPath.return_value = 0
+
+        with patch("sorter.paths.os.name", "nt"):
+            with patch("sorter.paths.ctypes.windll", windll, create=True):
+                with patch("sorter.paths.ctypes.wstring_at", return_value="C:\\Users\\Me\\Downloads"):
+                    self.assertEqual(
+                        known_folder_path("downloads", fallback),
+                        Path("C:\\Users\\Me\\Downloads"),
+                    )
+
+        windll.ole32.CoTaskMemFree.assert_called_once()
 
 
 if __name__ == "__main__":

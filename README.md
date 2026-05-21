@@ -1,28 +1,30 @@
 # Downloads Sorter
 
-![Coverage](badges/coverage.svg)
+![Unit test coverage:](badges/coverage.svg)
 
-Python console application for sorting a Windows downloads folder by `MXXX` course/project codes.
+Windows console app that cleans a Downloads folder by moving school/project files into matching desktop folders.
 
-## What it does
+## Features
 
-- Finds filenames containing patterns like `M122`, `M164`, or `M320`.
-- Also finds files and folders that start with `DE`, `GR`, `FR`, or `PH` followed by a space, `_`, `-`, `.`, or the end of the filename.
-- Scans the desktop for folders containing the same pattern.
-- Moves matching files from Downloads into the matching desktop folder.
-- Creates the desktop folder when no matching folder exists.
-- Deletes `.zip` files from Downloads when an extracted folder already exists there.
-- Moves image files without an `MXXX` pattern into the Windows Pictures/Bilder folder.
-- Moves `.mp4` files without an `MXXX` pattern into the Windows Videos folder.
-- Sends a detailed summary email with Resend after each cleaning run.
+- Sorts files and folders by `MXXX`, `DE`, `GR`, `FR`, and `PH` naming patterns.
+- Creates missing desktop folders and reuses existing matching folders.
+- Moves unsorted images and videos into Pictures/Bilder and Videos.
+- Deletes `.zip` files when the extracted folder already exists.
+- Supports exclusions by path, age, and pattern.
+- Sends a Resend email summary after each run.
 
-## Install
+## Setup
 
 ```powershell
+cd ".\Downloads Folder Sorter"
 pip install -r .\requirements.txt
 ```
 
-The app also tries to install this dependency automatically when `Start Cleaning` is selected and the package is missing.
+Set a Resend API key in the app config or with:
+
+```powershell
+$env:RESEND_API_KEY = "your-api-key"
+```
 
 ## Run
 
@@ -30,24 +32,6 @@ The app also tries to install this dependency automatically when `Start Cleaning
 python .\download_sorter.py
 ```
 
-The first run creates `sorter_config.json` next to the script. Use the `Config` menu to change paths or exclusions.
+The first run creates a local `sorter_config.json`, which is ignored by Git. Use the `Config` menu to change folder paths, exclusions, and email settings.
 
-## Config Options
-
-- Exclude specific paths or files.
-- Exclude files that are newer than a chosen number of days.
-- Exclude one or more `MXXX`, `DE`, `GR`, `FR`, or `PH` patterns.
-- Change the Downloads, Desktop, Images/Bilder, or Videos paths.
-- Set the Resend email summary settings.
-
-By default, the program asks Windows for the real known-folder paths, so it should work with different usernames and with redirected OneDrive folders.
-
-## Email Summary
-
-The cleaner will not start until a Resend API key is available. Add it in the `Config` menu or set it as the local environment variable `RESEND_API_KEY`.
-
-The local `sorter_config.json` file is ignored by Git so your API key, email address, and personal paths are not committed.
-
-## Email Template
-
-Edit `email_template.md` to customize the structure of the summary email. The app replaces placeholders like `{{finished_at}}`, `{{image_moves}}`, and `{{video_moves}}` before sending.
+Edit `email_template.md` to customize the summary email.

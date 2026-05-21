@@ -2,20 +2,23 @@ from __future__ import annotations
 
 import sys
 import tempfile
+import types
 import unittest
 from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 PROJECT_DIR = Path(__file__).resolve().parents[1] / "Downloads Folder Sorter"
 sys.path.insert(0, str(PROJECT_DIR))
 
 from sorter.config import Config
 from sorter.email_summary import (
+    load_email_template,
     markdown_code,
     markdown_inline_to_html,
     markdown_to_html,
     replace_template_variables,
+    send_summary_email,
     summary_email_html,
     template_list,
 )
@@ -78,6 +81,56 @@ class EmailSummaryTests(unittest.TestCase):
         self.assertIn("Errors: 1", html)
         self.assertIn("<code>source.txt</code>", html)
         self.assertIn("failed", html)
+
+    def test_load_email_template_raises_when_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as root_text:
+            missing_template = Path(root_text) / "missing.md"
+
+            with patch("sorter.email_summary.EMAIL_TEMPLATE_PATH", missing_template):
+                with self.assertRaisesRegex(RuntimeError, "Email template is missing"):
+                    load_email_template()
+
+    def test_send_summary_email_requires_resend_package_and_api_key(self) -> None:
+        summary = Summary()
+        config = Config("Downloads", "Desktop", "Pictures", "Videos")
+
+        with patch.dict(sys.modules, {"resend": None}):
+            with self.assertRaisesRegex(RuntimeError, "resend"):
+                send_summary_email(summary, config)
+
+        resend_module = types.SimpleNamespace(Emails=types.SimpleNamespace(send=Mock()))
+        with patch.dict(sys.modules, {"resend": resend_module}):
+            with patch.dict("sorter.email_summary.os.environ", {}, clear=True):
+                with self.assertRaisesRegex(RuntimeError, "No Resend API key"):
+                    send_summary_email(summary, config)
+
+    def test_send_summary_email_uses_config_key_and_payload(self) -> None:
+        summary = Summary()
+        config = Config(
+            "Downloads",
+            "Desktop",
+            "Pictures",
+            "Videos",
+            resend_api_key="config-key",
+            email_from="from@example.com",
+            email_to="to@example.com",
+        )
+        send_mock = Mock()
+        resend_module = types.SimpleNamespace(api_key="", Emails=types.SimpleNamespace(send=send_mock))
+
+        with patch.dict(sys.modules, {"resend": resend_module}):
+            with patch("sorter.email_summary.summary_email_html", return_value="<p>summary</p>"):
+                send_summary_email(summary, config)
+
+        self.assertEqual(resend_module.api_key, "config-key")
+        send_mock.assert_called_once_with(
+            {
+                "from": "from@example.com",
+                "to": "to@example.com",
+                "subject": "Downloads Sorter detailed summary",
+                "html": "<p>summary</p>",
+            }
+        )
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ import time
 import unittest
 from pathlib import Path
 from zipfile import ZipFile
+from unittest.mock import patch
 
 PROJECT_DIR = Path(__file__).resolve().parents[1] / "Downloads Folder Sorter"
 sys.path.insert(0, str(PROJECT_DIR))
@@ -113,6 +114,32 @@ class SortingHelperTests(unittest.TestCase):
             self.assertFalse(zip_path.exists())
             self.assertTrue(other_zip.exists())
             self.assertEqual(summary.zip_files_deleted, 1)
+
+    def test_desktop_module_folders_ignores_files(self) -> None:
+        with tempfile.TemporaryDirectory() as root_text:
+            desktop = Path(root_text)
+            (desktop / "M122 file.txt").write_text("not a folder", encoding="utf-8")
+
+            self.assertEqual(desktop_module_folders(desktop), {})
+
+    def test_delete_extracted_zips_skips_excluded_archives_and_records_errors(self) -> None:
+        with tempfile.TemporaryDirectory() as root_text:
+            downloads = Path(root_text)
+            skipped_zip = downloads / "skip.zip"
+            error_zip = downloads / "error.zip"
+            skipped_zip.write_text("skip", encoding="utf-8")
+            error_zip.write_text("error", encoding="utf-8")
+            summary = Summary()
+            config = Config(str(downloads), str(downloads), str(downloads), str(downloads))
+            config.excluded_paths = [str(skipped_zip)]
+
+            with patch("sorter.sorting.extracted_zip_exists", side_effect=OSError("broken zip")):
+                delete_extracted_zips(downloads, config, summary)
+
+            self.assertEqual(summary.skipped_files, 1)
+            self.assertIn("excluded path/file", summary.skipped_items[0][1])
+            self.assertEqual(len(summary.errors), 1)
+            self.assertIn("Could not process zip", summary.errors[0])
 
 
 if __name__ == "__main__":
