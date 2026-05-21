@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Tests and coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: Downloads Folder Sorter/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r "Downloads Folder Sorter/requirements.txt"
+          python -m pip install coverage
+
+      - name: Run tests with coverage
+        run: |
+          coverage run --source="Downloads Folder Sorter/sorter" -m unittest discover -s Unittests -p "test_*.py"
+          coverage report --show-missing
+          coverage xml
+
+      - name: Add coverage summary
+        run: |
+          {
+            echo "## Code coverage"
+            echo
+            echo '```text'
+            coverage report --show-missing
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
