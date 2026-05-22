@@ -4,7 +4,7 @@ Python application sorting the Downloads folder by searching for file name patte
 
 ## What it does
 
-- Finds filenames containing patterns like `M122`, `M164`, or `M320`.
+- Automatically detects standalone `MXXX` module codes like `M122`, `M164`, or `M431` from file and folder names.
 - Also finds files and folders that start with `DE`, `GR`, `FR`, or `PH` followed by a space, `_`, `-`, `.`, or the end of the filename.
 - Scans the desktop for folders containing the same pattern.
 - Moves matching files from Downloads into the matching desktop folder.

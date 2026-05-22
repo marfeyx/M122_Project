@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from collections.abc import Iterable
 
-MODULE_PATTERN = re.compile(r"M\d{3}|^(?:DE|GR|FR|PH)(?=$|[\s_.-])", re.IGNORECASE)
+MODULE_PATTERN = re.compile(r"(?<![A-Z0-9])M\d{3}(?![A-Z0-9])|^(?:DE|GR|FR|PH)(?=$|[\s_.-])", re.IGNORECASE)
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 

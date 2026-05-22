@@ -14,6 +14,12 @@ class PatternTests(unittest.TestCase):
     def test_find_modules_deduplicates_and_uppercases_matches(self) -> None:
         self.assertEqual(find_modules("m122-M122 notes M450"), ["M122", "M450"])
 
+    def test_find_modules_detects_new_module_codes_without_configuration(self) -> None:
+        self.assertEqual(find_modules("Project handout M431 final.pdf"), ["M431"])
+
+    def test_find_modules_requires_module_code_boundaries(self) -> None:
+        self.assertEqual(find_modules("SM122 archive M1234 M122_notes.txt"), ["M122"])
+
     def test_find_modules_only_matches_language_codes_at_start(self) -> None:
         self.assertEqual(find_modules("fr report DE M122 gr"), ["FR", "M122"])
 

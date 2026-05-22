@@ -115,6 +115,23 @@ class SortingTests(unittest.TestCase):
             self.assertEqual(summary.unassigned_module_files, 1)
             self.assertTrue((desktop / "M122" / "M122 notes.txt").exists())
 
+    def test_unknown_module_code_is_discovered_and_sorted(self) -> None:
+        with tempfile.TemporaryDirectory() as root_text:
+            root = Path(root_text)
+            downloads = root / "Downloads"
+            desktop = root / "Desktop"
+            images = root / "Pictures"
+            videos = root / "Videos"
+            downloads.mkdir()
+            source = downloads / "M431 assignment.pdf"
+            source.write_text("module", encoding="utf-8")
+
+            summary = clean_downloads(test_config(downloads, desktop, images, videos))
+
+            self.assertEqual(summary.desktop_folders_created, 1)
+            self.assertEqual(summary.module_files_moved, 1)
+            self.assertTrue((desktop / "M431" / source.name).exists())
+
     def test_clean_downloads_records_move_errors(self) -> None:
         with tempfile.TemporaryDirectory() as root_text:
             root = Path(root_text)
