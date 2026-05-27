@@ -25,6 +25,7 @@ sorter_config.json
 .env.*
 !.env.example
 startup_run.log
+sorter_config.json
 
 # Build and packaging output
 build/
