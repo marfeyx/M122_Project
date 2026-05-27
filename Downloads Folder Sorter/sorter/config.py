@@ -11,6 +11,11 @@ from .settings import CONFIG_PATH
 
 @dataclass
 class Config:
+    """
+
+    Returns:
+        _type_: _description_
+    """
     downloads_path: str
     desktop_path: str
     images_path: str
@@ -24,6 +29,11 @@ class Config:
 
     @classmethod
     def load(cls) -> "Config":
+        """
+
+        Returns:
+            Config: _description_
+        """
         defaults = default_config()
         if not CONFIG_PATH.exists():
             defaults.save()
@@ -59,6 +69,11 @@ class Config:
 
 
 def default_config() -> Config:
+    """
+
+    Returns:
+        Config: _description_
+    """
     home = Path.home()
     return Config(
         downloads_path=str(known_folder_path("downloads", home / "Downloads")),

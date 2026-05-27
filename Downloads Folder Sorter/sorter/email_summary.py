@@ -12,6 +12,15 @@ from .settings import EMAIL_TEMPLATE_PATH
 
 
 def template_list(items: Iterable[str], empty_text: str) -> str:
+    """_summary_
+
+    Args:
+        items (Iterable[str]): _description_
+        empty_text (str): _description_
+
+    Returns:
+        str: _description_
+    """
     item_list = list(items)
     if not item_list:
         return empty_text
@@ -19,10 +28,27 @@ def template_list(items: Iterable[str], empty_text: str) -> str:
 
 
 def markdown_code(value: str) -> str:
+    """
+
+    Args:
+        value (str): _description_
+
+    Returns:
+        str: _description_
+    """
     return "`" + str(value).replace("`", "") + "`"
 
 
 def replace_template_variables(template: str, values: dict[str, str]) -> str:
+    """
+
+    Args:
+        template (str): _description_
+        values (dict[str, str]): _description_
+
+    Returns:
+        str: _description_
+    """
     rendered = template
     for key, value in values.items():
         rendered = rendered.replace(f"{{{{{key}}}}}", value)
@@ -30,6 +56,14 @@ def replace_template_variables(template: str, values: dict[str, str]) -> str:
 
 
 def markdown_inline_to_html(markdown_text: str) -> str:
+    """
+
+    Args:
+        markdown_text (str): _description_
+
+    Returns:
+        str: _description_
+    """
     parts = markdown_text.split("`")
     rendered_parts = []
     for index, part in enumerate(parts):
@@ -42,6 +76,14 @@ def markdown_inline_to_html(markdown_text: str) -> str:
 
 
 def markdown_to_html(markdown_text: str) -> str:
+    """
+
+    Args:
+        markdown_text (str): _description_
+
+    Returns:
+        str: _description_
+    """
     html_lines = [
         "<div style=\"font-family: Arial, sans-serif; color: #17202a; line-height: 1.5;\">"
     ]
@@ -84,12 +126,29 @@ def markdown_to_html(markdown_text: str) -> str:
 
 
 def load_email_template() -> str:
+    """
+
+    Raises:
+        RuntimeError: _description_
+
+    Returns:
+        str: _description_
+    """
     if not EMAIL_TEMPLATE_PATH.exists():
         raise RuntimeError(f"Email template is missing: {EMAIL_TEMPLATE_PATH}")
     return EMAIL_TEMPLATE_PATH.read_text(encoding="utf-8")
 
 
 def summary_email_html(summary: Summary, config: Config) -> str:
+    """
+
+    Args:
+        summary (Summary): _description_
+        config (Config): _description_
+
+    Returns:
+        str: _description_
+    """
     finished_at = summary.finished_at or datetime.now()
     duration_seconds = round((finished_at - summary.started_at).total_seconds(), 2)
     status = "Completed with errors" if summary.errors else "Completed"
@@ -162,6 +221,16 @@ def summary_email_html(summary: Summary, config: Config) -> str:
 
 
 def send_summary_email(summary: Summary, config: Config) -> None:
+    """
+
+    Args:
+        summary (Summary): _description_
+        config (Config): _description_
+
+    Raises:
+        RuntimeError: _description_
+        RuntimeError: _description_
+    """
     try:
         import resend
     except ImportError as error:

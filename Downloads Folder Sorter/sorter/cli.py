@@ -15,11 +15,29 @@ from .sorting import clean_downloads
 
 
 def ask_path(label: str, current_value: str) -> str:
+    """
+
+    Args:
+        label (str): _description_
+        current_value (str): _description_
+
+    Returns:
+        str: _description_
+    """
     entered = input(f"{label} [{current_value}]: ").strip()
     return entered or current_value
 
 
 def ask_email(label: str, current_value: str) -> str:
+    """
+
+    Args:
+        label (str): _description_
+        current_value (str): _description_
+
+    Returns:
+        str: _description_
+    """
     while True:
         entered = input(f"{label} [{current_value}]: ").strip()
         if not entered:
@@ -30,6 +48,14 @@ def ask_email(label: str, current_value: str) -> str:
 
 
 def ask_days(current_value: int | None) -> int | None:
+    """
+
+    Args:
+        current_value (int | None): _description_
+
+    Returns:
+        int | None: _description_
+    """
     current_label = "off" if current_value is None else str(current_value)
     entered = input(f"Skip files newer than how many days? [{current_label}, empty=off]: ").strip()
     if not entered:
@@ -43,6 +69,14 @@ def ask_days(current_value: int | None) -> int | None:
 
 
 def has_resend_api_key(config: Config) -> bool:
+    """
+
+    Args:
+        config (Config): _description_
+
+    Returns:
+        bool: _description_
+    """
     config_key = config.resend_api_key.strip()
     env_key = os.environ.get("RESEND_API_KEY", "").strip()
     return bool(config_key or env_key)
@@ -59,11 +93,21 @@ def refresh_python_package_paths() -> None:
 
 
 def has_resend_package() -> bool:
+    """
+
+    Returns:
+        bool: _description_
+    """
     refresh_python_package_paths()
     return importlib.util.find_spec("resend") is not None
 
 
 def install_resend_package() -> bool:
+    """
+
+    Returns:
+        bool: _description_
+    """
     print("\nThe Resend Python package is not installed yet.")
     print("Installing it now with pip...")
     try:
@@ -87,6 +131,12 @@ def install_resend_package() -> bool:
 
 
 def edit_email_settings(config: Config, force_api_key: bool = False) -> None:
+    """
+
+    Args:
+        config (Config): _description_
+        force_api_key (bool, optional): _description_. Defaults to False.
+    """
     print("\nEmail Summary Settings")
     print("----------------------")
     print("The Resend API key is stored only in the local ignored config file.")
@@ -107,6 +157,11 @@ def edit_email_settings(config: Config, force_api_key: bool = False) -> None:
 
 
 def edit_excluded_paths(config: Config) -> None:
+    """
+
+    Args:
+        config (Config): _description_
+    """
     while True:
         print("\nExcluded paths/files")
         if config.excluded_paths:
@@ -137,6 +192,11 @@ def edit_excluded_paths(config: Config) -> None:
 
 
 def edit_excluded_patterns(config: Config) -> None:
+    """
+
+    Args:
+        config (Config): _description_
+    """
     current = ", ".join(config.excluded_patterns) or "none"
     print(f"\nCurrent excluded MXXX patterns: {current}")
     entered = input("Enter patterns separated by commas, or leave empty to clear: ").strip()
@@ -147,6 +207,11 @@ def edit_excluded_patterns(config: Config) -> None:
 
 
 def change_paths(config: Config) -> None:
+    """
+
+    Args:
+        config (Config): _description_
+    """
     print("\nChange folders. Press Enter to keep the current value.")
     config.downloads_path = ask_path("Downloads folder", config.downloads_path)
     config.images_path = ask_path("Images/Bilder folder", config.images_path)
@@ -156,6 +221,11 @@ def change_paths(config: Config) -> None:
 
 
 def config_menu(config: Config) -> None:
+    """
+
+    Args:
+        config (Config): _description_
+    """
     while True:
         print("\nConfig")
         print("------")
@@ -193,6 +263,14 @@ def config_menu(config: Config) -> None:
 
 
 def ensure_email_ready(config: Config) -> bool:
+    """
+
+    Args:
+        config (Config): _description_
+
+    Returns:
+        bool: _description_
+    """
     if not has_resend_package() and not install_resend_package():
         return False
 
@@ -206,6 +284,11 @@ def ensure_email_ready(config: Config) -> bool:
 
 
 def main() -> int:
+    """
+
+    Returns:
+        int: _description_
+    """
     config = Config.load()
 
     while True:
