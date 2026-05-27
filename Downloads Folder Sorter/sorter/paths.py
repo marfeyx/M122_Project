@@ -16,7 +16,23 @@ WINDOWS_ENV_VAR_PATTERN = re.compile(r"%([^%]+)%")
 
 
 def expand_environment_variables(path_text: str) -> str:
+    """
+
+    Args:
+        path_text (str): _description_
+
+    Returns:
+        str: _description_
+    """
     def replace_windows_variable(match: re.Match[str]) -> str:
+        """
+
+        Args:
+            match (re.Match[str]): _description_
+
+        Returns:
+            str: _description_
+        """
         variable_name = match.group(1)
         return os.environ.get(variable_name, match.group(0))
 
@@ -24,12 +40,26 @@ def expand_environment_variables(path_text: str) -> str:
 
 
 def known_folder_path(folder_name: str, fallback: Path) -> Path:
+    """
+
+    Args:
+        folder_name (str): _description_
+        fallback (Path): _description_
+
+    Returns:
+        Path: _description_
+    """
     if os.name != "nt":
         return fallback
 
     folder_id = KNOWN_FOLDER_IDS[folder_name]
 
     class GUID(ctypes.Structure):
+        """
+
+        Args:
+            ctypes (_type_): _description_
+        """
         _fields_ = [
             ("Data1", ctypes.c_ulong),
             ("Data2", ctypes.c_ushort),
@@ -61,10 +91,27 @@ def known_folder_path(folder_name: str, fallback: Path) -> Path:
 
 
 def resolve_path(path_text: str) -> Path:
+    """
+
+    Args:
+        path_text (str): _description_
+
+    Returns:
+        Path: _description_
+    """
     return Path(expand_environment_variables(os.path.expanduser(path_text))).resolve()
 
 
 def is_inside(child: Path, parent: Path) -> bool:
+    """
+
+    Args:
+        child (Path): _description_
+        parent (Path): _description_
+
+    Returns:
+        bool: _description_
+    """
     try:
         child.resolve().relative_to(parent.resolve())
         return True

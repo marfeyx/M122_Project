@@ -8,6 +8,14 @@ from .models import MoveResult, Summary
 
 
 def unique_destination(destination: Path) -> Path:
+    """
+
+    Args:
+        destination (Path): _description_
+
+    Returns:
+        Path: _description_
+    """
     if not destination.exists():
         return destination
 
@@ -22,6 +30,15 @@ def unique_destination(destination: Path) -> Path:
 
 
 def move_file(source: Path, destination_folder: Path) -> MoveResult:
+    """
+
+    Args:
+        source (Path): _description_
+        destination_folder (Path): _description_
+
+    Returns:
+        MoveResult: _description_
+    """
     destination_folder.mkdir(parents=True, exist_ok=True)
     requested_destination = destination_folder / source.name
     destination = unique_destination(requested_destination)
@@ -34,6 +51,13 @@ def move_file(source: Path, destination_folder: Path) -> MoveResult:
 
 
 def record_duplicate_name(summary: Summary, source: Path, result: MoveResult) -> None:
+    """
+
+    Args:
+        summary (Summary): _description_
+        source (Path): _description_
+        result (MoveResult): _description_
+    """
     if result.duplicate_name:
         summary.duplicate_name_items.append(
             (
@@ -45,6 +69,15 @@ def record_duplicate_name(summary: Summary, source: Path, result: MoveResult) ->
 
 
 def extracted_zip_exists(zip_path: Path, downloads_path: Path) -> bool:
+    """
+
+    Args:
+        zip_path (Path): _description_
+        downloads_path (Path): _description_
+
+    Returns:
+        bool: _description_
+    """
     same_name_folder = downloads_path / zip_path.stem
     if same_name_folder.is_dir():
         return True

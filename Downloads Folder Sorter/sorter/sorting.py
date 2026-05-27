@@ -54,6 +54,16 @@ IGNORED_FILE_NAMES = {"desktop.ini", "thumbs.db"}
 
 
 def exclusion_reason(path: Path, modules: list[str], config: Config) -> str | None:
+    """
+
+    Args:
+        path (Path): _description_
+        modules (list[str]): _description_
+        config (Config): _description_
+
+    Returns:
+        str | None: _description_
+    """
     resolved = path.resolve()
 
     for excluded in config.excluded_paths:
@@ -83,10 +93,28 @@ def exclusion_reason(path: Path, modules: list[str], config: Config) -> str | No
 
 
 def is_excluded(path: Path, modules: list[str], config: Config) -> bool:
+    """
+
+    Args:
+        path (Path): _description_
+        modules (list[str]): _description_
+        config (Config): _description_
+
+    Returns:
+        bool: _description_
+    """
     return exclusion_reason(path, modules, config) is not None
 
 
 def desktop_module_folders(desktop_path: Path) -> dict[str, Path]:
+    """
+
+    Args:
+        desktop_path (Path): _description_
+
+    Returns:
+        dict[str, Path]: _description_
+    """
     folders: dict[str, Path] = {}
     if not desktop_path.exists():
         desktop_path.mkdir(parents=True, exist_ok=True)
@@ -104,6 +132,16 @@ def choose_module_folder(
     desktop_path: Path,
     desktop_folders: dict[str, Path],
 ) -> tuple[str, Path, bool]:
+    """
+
+    Args:
+        modules (list[str]): _description_
+        desktop_path (Path): _description_
+        desktop_folders (dict[str, Path]): _description_
+
+    Returns:
+        tuple[str, Path, bool]: _description_
+    """
     for module in modules:
         existing_folder = desktop_folders.get(module)
         if existing_folder is not None:
@@ -117,6 +155,13 @@ def choose_module_folder(
 
 
 def delete_extracted_zips(downloads_path: Path, config: Config, summary: Summary) -> None:
+    """
+
+    Args:
+        downloads_path (Path): _description_
+        config (Config): _description_
+        summary (Summary): _description_
+    """
     for zip_path in downloads_path.glob("*.zip"):
         if not zip_path.is_file():
             continue
@@ -137,6 +182,14 @@ def delete_extracted_zips(downloads_path: Path, config: Config, summary: Summary
 
 
 def clean_downloads(config: Config) -> Summary:
+    """
+
+    Args:
+        config (Config): _description_
+
+    Returns:
+        Summary: _description_
+    """
     summary = Summary()
     downloads_path = resolve_path(config.downloads_path)
     desktop_path = resolve_path(config.desktop_path)

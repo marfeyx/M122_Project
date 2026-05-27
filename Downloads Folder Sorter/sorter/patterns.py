@@ -8,6 +8,14 @@ EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 def normalize_patterns(patterns: Iterable[str]) -> list[str]:
+    """
+
+    Args:
+        patterns (Iterable[str]): _description_
+
+    Returns:
+        list[str]: _description_
+    """
     normalized = []
     for pattern in patterns:
         pattern_as_text = str(pattern).strip()
@@ -22,6 +30,14 @@ def normalize_patterns(patterns: Iterable[str]) -> list[str]:
 
 
 def find_modules(text: str) -> list[str]:
+    """
+
+    Args:
+        text (str): _description_
+
+    Returns:
+        list[str]: _description_
+    """
     modules = []
     for match in MODULE_PATTERN.finditer(text):
         module_name = match.group(0).upper()
@@ -31,4 +47,12 @@ def find_modules(text: str) -> list[str]:
 
 
 def is_valid_email(value: str) -> bool:
+    """
+
+    Args:
+        value (str): _description_
+
+    Returns:
+        bool: _description_
+    """
     return EMAIL_PATTERN.fullmatch(value.strip()) is not None
