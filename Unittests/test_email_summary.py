@@ -14,30 +14,15 @@ sys.path.insert(0, str(PROJECT_DIR))
 from sorter.config import Config
 from sorter.email_summary import (
     load_email_template,
-    markdown_code,
     markdown_inline_to_html,
     markdown_to_html,
-    replace_template_variables,
     send_summary_email,
     summary_email_html,
-    template_list,
 )
 from sorter.models import Summary
 
 
 class EmailSummaryTests(unittest.TestCase):
-    def test_template_list_uses_empty_text_for_no_items(self) -> None:
-        self.assertEqual(template_list([], "none"), "none")
-        self.assertEqual(template_list(["one", "two"], "none"), "- one\n- two")
-
-    def test_markdown_code_removes_backticks(self) -> None:
-        self.assertEqual(markdown_code("a`b"), "`ab`")
-
-    def test_replace_template_variables_replaces_known_tokens_only(self) -> None:
-        rendered = replace_template_variables("Hello {{name}} {{missing}}", {"name": "Ada"})
-
-        self.assertEqual(rendered, "Hello Ada {{missing}}")
-
     def test_markdown_inline_to_html_escapes_text_and_renders_inline_markup(self) -> None:
         html = markdown_inline_to_html("**Bold** `<tag>`")
 

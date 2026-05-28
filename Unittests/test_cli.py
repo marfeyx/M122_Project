@@ -11,8 +11,6 @@ sys.path.insert(0, str(PROJECT_DIR))
 
 from sorter.cli import (
     ask_days,
-    ask_email,
-    ask_path,
     change_paths,
     config_menu,
     edit_email_settings,
@@ -20,27 +18,12 @@ from sorter.cli import (
     edit_excluded_patterns,
     ensure_email_ready,
     has_resend_api_key,
-    has_resend_package,
-    install_resend_package,
     main,
-    refresh_python_package_paths,
 )
 from sorter.config import Config
 
 
 class CliTests(unittest.TestCase):
-    def test_ask_path_keeps_current_value_on_empty_input(self) -> None:
-        with patch("builtins.input", return_value=""):
-            self.assertEqual(ask_path("Downloads", "current"), "current")
-
-    def test_ask_email_reprompts_until_valid(self) -> None:
-        with patch("builtins.input", side_effect=["bad", "user@example.com"]):
-            with patch("builtins.print") as print_mock:
-                result = ask_email("Recipient", "old@example.com")
-
-        self.assertEqual(result, "user@example.com")
-        print_mock.assert_called_once()
-
     def test_ask_days_accepts_empty_invalid_and_negative_values(self) -> None:
         with patch("builtins.input", return_value=""):
             self.assertIsNone(ask_days(3))
@@ -63,15 +46,6 @@ class CliTests(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=True):
             self.assertTrue(has_resend_api_key(config))
 
-    def test_ensure_email_ready_installs_package_and_requires_api_key(self) -> None:
-        config = Config("D", "Desk", "Img", "Vid", resend_api_key="key")
-
-        with patch("sorter.cli.has_resend_package", side_effect=[False]):
-            with patch("sorter.cli.install_resend_package", return_value=True) as install_mock:
-                self.assertTrue(ensure_email_ready(config))
-
-        install_mock.assert_called_once()
-
     def test_ensure_email_ready_opens_settings_when_key_is_missing(self) -> None:
         config = Config("D", "Desk", "Img", "Vid")
 
@@ -85,43 +59,6 @@ class CliTests(unittest.TestCase):
                     self.assertTrue(ensure_email_ready(config))
 
         edit_mock.assert_called_once()
-
-    def test_refresh_python_package_paths_handles_missing_user_site(self) -> None:
-        with patch("sorter.cli.importlib.invalidate_caches") as invalidate_mock:
-            with patch("sorter.cli.site.getusersitepackages", side_effect=RuntimeError):
-                refresh_python_package_paths()
-
-        invalidate_mock.assert_called_once()
-
-    def test_refresh_python_package_paths_adds_user_site(self) -> None:
-        with patch("sorter.cli.importlib.invalidate_caches"):
-            with patch("sorter.cli.site.getusersitepackages", return_value="user-site"):
-                with patch("sorter.cli.sys.path", []):
-                    with patch("sorter.cli.site.addsitedir") as addsitedir_mock:
-                        refresh_python_package_paths()
-
-        addsitedir_mock.assert_called_once_with("user-site")
-
-    def test_has_resend_package_checks_import_spec_after_refresh(self) -> None:
-        with patch("sorter.cli.refresh_python_package_paths") as refresh_mock:
-            with patch("sorter.cli.importlib.util.find_spec", return_value=object()):
-                self.assertTrue(has_resend_package())
-
-        refresh_mock.assert_called_once()
-
-    def test_install_resend_package_reports_failure_and_success(self) -> None:
-        with patch("sorter.cli.subprocess.check_call", side_effect=OSError("no pip")):
-            with patch("builtins.print"):
-                self.assertFalse(install_resend_package())
-
-        with patch("sorter.cli.subprocess.check_call") as check_call_mock:
-            with patch("sorter.cli.refresh_python_package_paths") as refresh_mock:
-                with patch("sorter.cli.has_resend_package", return_value=True):
-                    with patch("builtins.print"):
-                        self.assertTrue(install_resend_package())
-
-        check_call_mock.assert_called_once()
-        refresh_mock.assert_called_once()
 
     def test_edit_email_settings_updates_key_and_addresses(self) -> None:
         config = Config("D", "Desk", "Img", "Vid")

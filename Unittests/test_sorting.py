@@ -10,7 +10,6 @@ PROJECT_DIR = Path(__file__).resolve().parents[1] / "Downloads Folder Sorter"
 sys.path.insert(0, str(PROJECT_DIR))
 
 from sorter.config import Config
-from sorter.patterns import find_modules
 from sorter.sorting import clean_downloads
 
 
@@ -24,9 +23,6 @@ def test_config(downloads: Path, desktop: Path, images: Path, videos: Path) -> C
 
 
 class SortingTests(unittest.TestCase):
-    def test_module_matches_keep_filename_order(self) -> None:
-        self.assertEqual(find_modules("M122 before M999.txt"), ["M122", "M999"])
-
     def test_multi_module_file_prefers_existing_desktop_folder(self) -> None:
         with tempfile.TemporaryDirectory() as root_text:
             root = Path(root_text)

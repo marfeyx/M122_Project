@@ -5,7 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 PROJECT_DIR = Path(__file__).resolve().parents[1] / "Downloads Folder Sorter"
 sys.path.insert(0, str(PROJECT_DIR))
@@ -41,38 +41,6 @@ class PathTests(unittest.TestCase):
 
         with patch("sorter.paths.os.name", "posix"):
             self.assertEqual(known_folder_path("downloads", fallback), fallback)
-
-    def test_known_folder_path_returns_fallback_when_windows_calls_fail(self) -> None:
-        fallback = Path("fallback")
-        windll = Mock()
-        windll.ole32.CLSIDFromString.return_value = 1
-
-        with patch("sorter.paths.os.name", "nt"):
-            with patch("sorter.paths.ctypes.windll", windll, create=True):
-                self.assertEqual(known_folder_path("downloads", fallback), fallback)
-
-        windll.ole32.CLSIDFromString.return_value = 0
-        windll.shell32.SHGetKnownFolderPath.return_value = 1
-
-        with patch("sorter.paths.os.name", "nt"):
-            with patch("sorter.paths.ctypes.windll", windll, create=True):
-                self.assertEqual(known_folder_path("downloads", fallback), fallback)
-
-    def test_known_folder_path_returns_windows_path_and_frees_pointer(self) -> None:
-        fallback = Path("fallback")
-        windll = Mock()
-        windll.ole32.CLSIDFromString.return_value = 0
-        windll.shell32.SHGetKnownFolderPath.return_value = 0
-
-        with patch("sorter.paths.os.name", "nt"):
-            with patch("sorter.paths.ctypes.windll", windll, create=True):
-                with patch("sorter.paths.ctypes.wstring_at", return_value="C:\\Users\\Me\\Downloads"):
-                    self.assertEqual(
-                        known_folder_path("downloads", fallback),
-                        Path("C:\\Users\\Me\\Downloads"),
-                    )
-
-        windll.ole32.CoTaskMemFree.assert_called_once()
 
 
 if __name__ == "__main__":

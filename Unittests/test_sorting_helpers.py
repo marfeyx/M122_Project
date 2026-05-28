@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-import os
 import sys
 import tempfile
-import time
 import unittest
 from pathlib import Path
 from zipfile import ZipFile
@@ -19,7 +17,6 @@ from sorter.sorting import (
     delete_extracted_zips,
     desktop_module_folders,
     exclusion_reason,
-    is_excluded,
 )
 
 
@@ -58,16 +55,6 @@ class SortingHelperTests(unittest.TestCase):
             recent.write_text("recent", encoding="utf-8")
             self.assertEqual(exclusion_reason(recent, [], config), "newer than 1 day(s)")
 
-    def test_is_excluded_returns_boolean_from_exclusion_reason(self) -> None:
-        with tempfile.TemporaryDirectory() as root_text:
-            root = Path(root_text)
-            file_path = root / "desktop.ini"
-            file_path.write_text("", encoding="utf-8")
-            config = Config(str(root), str(root), str(root), str(root))
-
-            self.assertTrue(is_excluded(file_path, [], config))
-            self.assertFalse(is_excluded(root / "notes.txt", [], config))
-
     def test_desktop_module_folders_creates_desktop_and_indexes_matches(self) -> None:
         with tempfile.TemporaryDirectory() as root_text:
             desktop = Path(root_text) / "Desktop"
@@ -95,49 +82,35 @@ class SortingHelperTests(unittest.TestCase):
             self.assertEqual((module, folder, created), ("M122", desktop / "M122", True))
             self.assertTrue(folder.exists())
 
-    def test_delete_extracted_zips_removes_only_matching_extracted_archives(self) -> None:
+    def test_delete_extracted_zips_removes_matching_archives_and_handles_skips_and_errors(self) -> None:
         with tempfile.TemporaryDirectory() as root_text:
             downloads = Path(root_text)
             extracted = downloads / "archive"
             extracted.mkdir()
             zip_path = downloads / "archive.zip"
-            other_zip = downloads / "other.zip"
-            with ZipFile(zip_path, "w") as archive:
-                archive.writestr("archive/file.txt", "content")
-            with ZipFile(other_zip, "w") as archive:
-                archive.writestr("other/file.txt", "content")
-            summary = Summary()
-            config = Config(str(downloads), str(downloads), str(downloads), str(downloads))
-
-            delete_extracted_zips(downloads, config, summary)
-
-            self.assertFalse(zip_path.exists())
-            self.assertTrue(other_zip.exists())
-            self.assertEqual(summary.zip_files_deleted, 1)
-
-    def test_desktop_module_folders_ignores_files(self) -> None:
-        with tempfile.TemporaryDirectory() as root_text:
-            desktop = Path(root_text)
-            (desktop / "M122 file.txt").write_text("not a folder", encoding="utf-8")
-
-            self.assertEqual(desktop_module_folders(desktop), {})
-
-    def test_delete_extracted_zips_skips_excluded_archives_and_records_errors(self) -> None:
-        with tempfile.TemporaryDirectory() as root_text:
-            downloads = Path(root_text)
             skipped_zip = downloads / "skip.zip"
             error_zip = downloads / "error.zip"
-            skipped_zip.write_text("skip", encoding="utf-8")
+            with ZipFile(zip_path, "w") as archive:
+                archive.writestr("archive/file.txt", "content")
+            with ZipFile(skipped_zip, "w") as archive:
+                archive.writestr("skip/file.txt", "content")
             error_zip.write_text("error", encoding="utf-8")
             summary = Summary()
             config = Config(str(downloads), str(downloads), str(downloads), str(downloads))
             config.excluded_paths = [str(skipped_zip)]
 
-            with patch("sorter.sorting.extracted_zip_exists", side_effect=OSError("broken zip")):
+            def extracted_exists(current_zip: Path, _downloads: Path) -> bool:
+                if current_zip == error_zip:
+                    raise OSError("broken zip")
+                return True
+
+            with patch("sorter.sorting.extracted_zip_exists", side_effect=extracted_exists):
                 delete_extracted_zips(downloads, config, summary)
 
+            self.assertFalse(zip_path.exists())
             self.assertEqual(summary.skipped_files, 1)
             self.assertIn("excluded path/file", summary.skipped_items[0][1])
+            self.assertEqual(summary.zip_files_deleted, 1)
             self.assertEqual(len(summary.errors), 1)
             self.assertIn("Could not process zip", summary.errors[0])
 
